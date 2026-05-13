@@ -255,6 +255,11 @@ async function handleTaskCommand(msg) {
 // ── POLLING LOOP ──────────────────────────────────────────────────────────────
 let offset = 0;
 
+async function handleTasksCommand(msg) {
+  await sendTgMessage(msg.chat.id, `⏳ Fetching tasks\\.\\.\\.`, msg.message_id);
+  await sendDailyReport();
+}
+
 async function handleUpdate(update) {
   const msg = update.message || update.channel_post;
   if (!msg || !msg.text) return;
@@ -262,13 +267,15 @@ async function handleUpdate(update) {
   // Only respond to the configured chat
   if (String(msg.chat.id) !== String(TELEGRAM_CHAT_ID)) return;
 
-  if (msg.text.startsWith("/task")) {
+  if (msg.text.startsWith("/tasks")) {
+    await handleTasksCommand(msg);
+  } else if (msg.text.startsWith("/task")) {
     await handleTaskCommand(msg);
   }
 }
 
 async function poll() {
-  console.log("👂 Listening for /task commands...");
+  console.log("👂 Listening for commands (/task, /tasks)...");
   while (true) {
     try {
       const { data } = await tg.get("/getUpdates", {
